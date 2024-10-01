@@ -21,11 +21,12 @@ To get started with the Windows Service Restarting Tool, follow these steps:
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/sammymunene/PowerShell-service-restarting-script
+   ```
 
 2. **Clone the Repository**:
   ```bash
   cd cd PowerShell-service-restarting-script
-```
+   ```
 
 3. **Execute the batch file**:
    -  Right-click on the .bat file and select "Run as administrator" to execute the script with elevated privileges
