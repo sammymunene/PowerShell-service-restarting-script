@@ -1,4 +1,5 @@
-<# This Script was written on 01/10/2024.
+<# 
+This Script was written on 01/10/2024.
 - The reusable script is written in PowerShell. Its function is to restart a specified Windows service.
 - Ask for permission before use for copyright purposes.
 
@@ -22,14 +23,19 @@ function Write-Red($message) {
     Write-Host $message -ForegroundColor Red
 }
 
-# Function to write output in Yellow(General info)
 function Write-Yellow($message) {
     Write-Host $message -ForegroundColor Yellow
 }
 
+function Write-Blue($message) {
+    Write-Host $message -ForegroundColor Blue
+}
 
-# Service name
-$serviceName = "SBAMpesaServer"
+# Define service names
+$service1 = "SBAMpesaServer"
+$service2 = "SBAOnlineSync"
+$service3 = "SBADoorController"
+$service4 = "SBAServer"
 
 # Function to get and display service status
 function Get-ServiceStatus($serviceName) {
@@ -39,75 +45,82 @@ function Get-ServiceStatus($serviceName) {
         return $null
     }
     $status = $service.Status
-    $startType = $service.StartType
-    $processId = $service.ProcessId
-    Write-Green "Current status of '$serviceName': $status"
-    Write-Green "Start Type: $startType"
-    Write-Yellow "Process ID: $(if ($null -eq $processId) { 'Not available' } else { $processId })"
+    Write-Blue "Current status of '$serviceName': $status"
     return $service
 }
 
-# Check initial status
-Write-Green "Checking initial status:"
-$initialService = Get-ServiceStatus $serviceName
-if ($null -eq $initialService) { exit }
+# User prompt for service selection
+Write-Green "Please choose a service to manage:"
+Write-Green "1. $service1"
+Write-Green "2. $service2"
+Write-Green "3. $service3"
+Write-Green "4. $service4"
+Write-Green "5. All services"
+$choice = Read-Host "Enter 1, 2, 3, 4 or 5"
 
-# Attempt to restart the service
-try {
-    Write-Green "`nAttempting to restart the service..."
-    Restart-Service -Name $serviceName -Force -ErrorAction Stop
-    Write-Green "Restart command executed successfully."
-} catch {
-    Write-Red "Failed to restart the service. Please run this script with Administrator privileges."
-    exit 1
-}
-
-
-# Wait for a moment to allow the service to fully restart
-Start-Sleep -Seconds 5
-
-# Check status after restart
-Write-Green "`nChecking status after restart attempt:"
-$restartedService = Get-ServiceStatus $serviceName
-
-# Compare before and after status
-if ($initialService.Status -eq $restartedService.Status) {
-    Write-Yellow "`nWarning: Service status did not change after restart attempt."
+# Determine the selected service
+if ($choice -eq '5') {
+    $serviceNames = @($service1, $service2, $service3, $service4)
 } else {
-    Write-Green "`nService status changed from $($initialService.Status) to $($restartedService.Status)."
+    switch ($choice) {
+        1 { $serviceNames = @($service1) }
+        2 { $serviceNames = @($service2) }
+        3 { $serviceNames = @($service3) }
+        4 { $serviceNames = @($service4) }
+        default { Write-Red "Invalid choice. Exiting script."; exit 1 }
+    }
 }
 
-# Additional verification
-$processId = $restartedService.ProcessId
-if ($null -ne $processId) {
-    $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
-    if ($null -ne $process) {
-        Write-Green "`nProcess details:"
-        Write-Green "Name: $($process.Name)"
-        Write-Green "ID: $($process.Id)"
-        Write-Green "Start Time: $($process.StartTime)"
-        Write-Green "CPU Time: $($process.TotalProcessorTime)"
+# List available services
+$availableServices = @()
+$missingServices = @()
+
+foreach ($serviceName in $serviceNames) {
+    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+    if ($null -ne $service) {
+        $availableServices += $serviceName
+        Write-Green "Available service: $serviceName"
     } else {
-        Write-Red "`nWarning: Process with ID $processId not found."
+        $missingServices += $serviceName
+        Write-Red "Service $serviceName is missing from your computer."
     }
-} else {
-    Write-Yellow "`nNote: This service does not have an associated process ID."
 }
 
-# Get dependent services
-$dependentServices = Get-Service -Name $serviceName -DependentServices
-if ($dependentServices) {
-    Write-Green "`nDependent services:"
-    foreach ($depService in $dependentServices) {
-        Write-Green "$($depService.DisplayName) - Status: $($depService.Status)"
+
+# Restart available services
+foreach ($serviceName in $availableServices) {
+    $initialService = Get-ServiceStatus $serviceName
+
+    # Attempt to restart the service
+    try {
+        Write-Green "`nAttempting to restart the service '$serviceName'..."
+        Restart-Service -Name $serviceName -Force -ErrorAction Stop
+        Write-Green "Restart command executed successfully for '$serviceName'."
+    } catch {
+        $errorMessage = $_.Exception.Message  # Extract the error message
+        Write-Red "Failed to restart the service '$serviceName'. Error: $errorMessage"
+        continue
     }
-} else {
-    Write-Yellow "`nNo dependent services found."
+
+
+    # Wait for a moment to allow the service to fully restart
+    Start-Sleep -Seconds 5
+
+    # Check status after restart
+    $restartedService = Get-ServiceStatus $serviceName
+
+    # Compare before and after status
+    if ($initialService.Status -eq $restartedService.Status) {
+        Write-Yellow "`nWarning: Service status did not change after restart attempt for '$serviceName'."
+    } else {
+        Write-Green "`nService status changed from $($initialService.Status) to $($restartedService.Status) for '$serviceName'."
+    }
+}
+
+# Alert for missing services
+if ($missingServices.Count -gt 0) {
+    Write-Yellow "`nThe following services were missing and could not be managed: $($missingServices -join ', ')"
 }
 
 # Additional troubleshooting info
-# Write-Green "`nAdditional troubleshooting information:"
-# Write-Green "1. Check the Windows Event Viewer for any related events."
-# Write-Green "2. Verify the service configuration in the Services console (services.msc)."
-# Write-Green "3. Ensure you have the necessary permissions to manage this service."
 Write-Green "1. If issues persist, consider checking the service's log files or contacting the service vendor."
