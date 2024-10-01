@@ -55,12 +55,13 @@ if ($null -eq $initialService) { exit }
 # Attempt to restart the service
 try {
     Write-Green "`nAttempting to restart the service..."
-    Restart-Service -Name $serviceName -Force
+    Restart-Service -Name $serviceName -Force -ErrorAction Stop
     Write-Green "Restart command executed successfully."
 } catch {
-    Write-Red "Failed to restart the service. Error: $_"
-    exit
+    Write-Red "Failed to restart the service. Please run this script with Administrator privileges."
+    exit 1
 }
+
 
 # Wait for a moment to allow the service to fully restart
 Start-Sleep -Seconds 5
@@ -91,7 +92,6 @@ if ($null -ne $processId) {
     }
 } else {
     Write-Yellow "`nNote: This service does not have an associated process ID."
-    Write-Yellow "This can occur with certain types of services, such as shared process or driver services."
 }
 
 # Get dependent services
@@ -106,8 +106,8 @@ if ($dependentServices) {
 }
 
 # Additional troubleshooting info
-Write-Green "`nAdditional troubleshooting information:"
-Write-Green "1. Check the Windows Event Viewer for any related events."
-Write-Green "2. Verify the service configuration in the Services console (services.msc)."
-Write-Green "3. Ensure you have the necessary permissions to manage this service."
-Write-Green "4. If issues persist, consider checking the service's log files or contacting the service vendor."
+# Write-Green "`nAdditional troubleshooting information:"
+# Write-Green "1. Check the Windows Event Viewer for any related events."
+# Write-Green "2. Verify the service configuration in the Services console (services.msc)."
+# Write-Green "3. Ensure you have the necessary permissions to manage this service."
+Write-Green "1. If issues persist, consider checking the service's log files or contacting the service vendor."
