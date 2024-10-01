@@ -33,9 +33,9 @@ To get started with the Windows Service Restarting Tool, follow these steps:
      
 4. **Usage Example**
    - To restart a service, edit service.ps1 as follows:
+     
      ```bash
       $ServiceName = "YourServiceName"
-      Restart-Service -Name $ServiceName -Force
      ```
    **Contributing**
     Contributions are welcome! If you have suggestions for improvements or new features, please submit a pull request or open an issue on GitHub.
