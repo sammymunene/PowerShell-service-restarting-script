@@ -31,6 +31,9 @@ function Write-Blue($message) {
     Write-Host $message -ForegroundColor Blue
 }
 
+function Write-Cyan($message) {
+    Write-Host $message -ForegroundColor DarkCyan
+}
 # Define service names
 $service1 = "SBAMpesaServer"
 $service2 = "SBAOnlineSync"
@@ -50,13 +53,13 @@ function Get-ServiceStatus($serviceName) {
 }
 
 # User prompt for service selection
-Write-Green "Please choose a service to manage:"
+Write-Cyan "Please choose a service to manage:"
 Write-Green "1. $service1"
 Write-Green "2. $service2"
 Write-Green "3. $service3"
 Write-Green "4. $service4"
 Write-Green "5. All services"
-$choice = Read-Host "Enter 1, 2, 3, 4 or 5"
+$choice = Read-Host "Choose an option E.g 1, 2, 3"
 
 # Determine the selected service
 if ($choice -eq '5') {
