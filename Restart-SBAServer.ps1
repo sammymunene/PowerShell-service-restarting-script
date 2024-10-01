@@ -27,6 +27,10 @@ function Write-Yellow($message) {
     Write-Host $message -ForegroundColor Yellow
 }
 
+
+# Service name
+$serviceName = "SBAMpesaServer"
+
 # Function to get and display service status
 function Get-ServiceStatus($serviceName) {
     $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
@@ -42,9 +46,6 @@ function Get-ServiceStatus($serviceName) {
     Write-Yellow "Process ID: $(if ($null -eq $processId) { 'Not available' } else { $processId })"
     return $service
 }
-
-# Service name
-$serviceName = "SBA Server"
 
 # Check initial status
 Write-Green "Checking initial status:"
